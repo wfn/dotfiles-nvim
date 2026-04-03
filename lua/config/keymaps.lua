@@ -41,9 +41,9 @@ map("x", "<leader>p", [["_dP]], { desc = "Paste without overwriting register" })
 -- File under cursor
 map("n", "<leader>gf", "<C-w>vgf", { desc = "Open file under cursor in vsplit" })
 
--- Diagnostic navigation
-map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
-map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+-- Diagnostic navigation (vim.diagnostic.jump replaces deprecated goto_prev/goto_next)
+map("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, { desc = "Previous diagnostic" })
+map("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, { desc = "Next diagnostic" })
 map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic" })
 
 -- LSP keymaps (set when LSP attaches to a buffer)

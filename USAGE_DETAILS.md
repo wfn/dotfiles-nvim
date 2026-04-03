@@ -20,7 +20,7 @@
 - [Common Workflows](#common-workflows)
 - [Vim Concepts Reference](#vim-concepts-reference)
 - [Troubleshooting](#troubleshooting)
-- [Upgrading to Neovim 0.12+](#upgrading-to-neovim-012)
+- [Neovim 0.12 Migration Notes](#neovim-012-migration-notes)
 - [Official Documentation Links](#official-documentation-links)
 
 ---
@@ -114,30 +114,40 @@ record the change. `:Lazy restore` reverts to the lockfile versions.
 
 Treesitter parses code into a concrete syntax tree, enabling:
 - **Accurate highlighting** (understands language grammar, not just regex patterns)
-- **Smart indentation** (`indent.enable = true`)
-- **Incremental selection** (`Ctrl+Space` to expand selection by syntax node, `Backspace` to shrink)
+- **Smart indentation** (enabled via FileType autocmds in the config)
+- **Incremental selection** (built into Neovim 0.12 -- see below)
+
+### How it works (Neovim 0.12 API)
+The treesitter config uses the `main` branch of nvim-treesitter, which has a
+different API from the old `master` branch. The setup works as follows:
+- `require("nvim-treesitter").setup({})` initializes the plugin
+- `require("nvim-treesitter").install({...})` ensures parsers are installed
+- FileType autocmds call `vim.treesitter.start()` and `vim.treesitter.stop()`
+  to enable highlighting and indent on a per-buffer basis
+
+The **tree-sitter CLI** (installed via `npm install -g tree-sitter-cli`) is required
+for compiling parsers.
 
 ### Commands
 | Command | What it does |
 |---------|-------------|
-| `:TSInstall <lang>` | Install a parser |
-| `:TSUpdate` | Update all parsers |
-| `:TSInstallInfo` | Show installed/available parsers |
-| `:TSModuleInfo` | Show which modules are enabled per language |
 | `:InspectTree` | Show the syntax tree for current buffer (great for debugging) |
 | `:Inspect` | Show highlight groups under cursor |
 
+Note: the old `:TSInstall`, `:TSUpdate`, `:TSInstallInfo`, and `:TSModuleInfo`
+commands from the `master` branch are no longer available. Parser installation is
+handled declaratively in the config.
+
 ### Adding a language
-Add its name to `ensure_installed` in `lua/plugins/treesitter.lua`. With
-`auto_install = true`, just opening a file of a known type will also trigger install.
+Add its parser name to the `install()` call in `lua/plugins/treesitter.lua`.
 
 Parser names are usually lowercase language names: `python`, `javascript`, `go`, `rust`,
 `ruby`, `java`, `c_sharp`, `elixir`, `haskell`, etc.
 
 ### Incremental selection
-In normal mode, press `Ctrl+Space` to start selecting. Press again to expand to the
-next syntax node (e.g., word -> expression -> statement -> function -> class).
-Press `Backspace` to shrink back. Very useful for selecting logical code blocks.
+Neovim 0.12 has built-in incremental selection. In visual mode, use `an` to expand
+the selection to the next syntax node and `in` to shrink it. No plugin configuration
+is needed -- this is a native Neovim feature.
 
 ---
 
@@ -167,9 +177,9 @@ You rarely interact with this directly — just add server names to `ensure_inst
 | Command | What it does |
 |---------|-------------|
 | `:Mason` | Open Mason UI — install/update/remove servers |
-| `:LspInfo` | Show active LSP clients for current buffer |
-| `:LspLog` | Show LSP client logs (for debugging) |
-| `:LspRestart` | Restart LSP clients |
+| `:checkhealth vim.lsp` | Show LSP status and active clients |
+| `:lsp restart` | Restart LSP clients for current buffer |
+| `:lsp stop` | Stop LSP clients for current buffer |
 
 ### Installed servers
 
@@ -402,15 +412,16 @@ choose how to open the result:
 ## Troubleshooting
 
 ### "No LSP features / completions not working"
-1. Check `:LspInfo` — is a server attached?
+1. Check `:checkhealth vim.lsp` — is a server attached?
 2. Check `:Mason` — is the server installed?
-3. Check `:LspLog` for errors
+3. Check LSP log at `vim.lsp.log.get_filename()` for errors
 4. Some servers need the project root to contain certain files (e.g., `pyproject.toml` for pyright)
 
 ### "Treesitter highlighting looks wrong"
-1. `:TSInstallInfo` — is the parser installed?
-2. `:TSUpdate` — update parsers
+1. Check that the parser is listed in the `install()` call in `lua/plugins/treesitter.lua`
+2. Restart Neovim to trigger parser installation
 3. `:InspectTree` — examine the syntax tree
+4. Ensure the tree-sitter CLI is installed (`npm install -g tree-sitter-cli`)
 
 ### "Plugin not loading"
 1. `:Lazy` — check status
@@ -427,17 +438,20 @@ choose how to open the result:
 
 ---
 
-## Upgrading to Neovim 0.12+
+## Neovim 0.12 Migration Notes
 
-When you upgrade Neovim to 0.12+, you must migrate the Treesitter config:
+The upgrade from Neovim 0.11 to 0.12 has been completed. Key changes that were made:
 
-1. In `lua/plugins/treesitter.lua`, change `branch = "master"` to `branch = "main"`
-2. The setup API changes:
-   - Old (0.11): `require("nvim-treesitter.configs").setup({ ensure_installed = {...}, highlight = { enable = true } })`
-   - New (0.12): `require("nvim-treesitter").setup({})` + install parsers via `require("nvim-treesitter").install({...})`
-   - Highlighting: enabled via `vim.treesitter.start()` or auto-enabled
-
-Check the nvim-treesitter README on the `main` branch for the current API when upgrading.
+1. **Treesitter**: switched nvim-treesitter from `master` to `main` branch, rewrote
+   setup to use the new API (`require("nvim-treesitter").setup()` + `install()` +
+   FileType autocmds). The `jsonc` parser was removed (unsupported on `main` branch).
+2. **Diagnostic navigation**: keymaps changed from `vim.diagnostic.goto_prev/goto_next`
+   to `vim.diagnostic.jump()` with `{count = -1}` / `{count = 1}`.
+3. **Incremental selection**: now built into Neovim (`an`/`in` in visual mode), no
+   longer configured through the treesitter plugin.
+4. **LSP commands**: `:LspInfo` replaced by `:checkhealth vim.lsp`, `:LspRestart`
+   replaced by `:lsp restart`.
+5. **tree-sitter CLI**: now a required dependency (install via `npm install -g tree-sitter-cli`).
 
 ---
 

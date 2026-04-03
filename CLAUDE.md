@@ -1,7 +1,7 @@
 # CLAUDE.md — Neovim Configuration
 
 > Personal Neovim configuration. Lua-based, using lazy.nvim plugin manager.
-> Targets **Neovim 0.11+** on macOS.
+> Targets **Neovim 0.12+** on macOS.
 
 ---
 
@@ -12,6 +12,8 @@
 | **Understanding the setup** | This file | Architecture, directory structure, key decisions |
 | **Keybindings, usage, how-to** | `GUIDE.md` | Quick reference for daily use |
 | **Detailed usage / plugin questions** | `USAGE_DETAILS.md` | Deep dives, nvim concepts, plugin-specific help, troubleshooting |
+| **Fresh machine setup** | `SETUP.md` | Prerequisites, install steps, first-launch checklist |
+| **Testing / regression checks** | `TESTING.md` | Headless test suite, run after upgrades or config changes |
 | **Adding a new language** | `GUIDE.md` § "Add Syntax Highlighting" + "Add IDE Features" | Treesitter parser + LSP server |
 | **Adding a new plugin** | `GUIDE.md` § "Add a New Plugin" | Create file in `lua/plugins/` |
 | **Changing keybindings** | `GUIDE.md` § "Add Custom Keybindings" | Edit `lua/config/keymaps.lua` |
@@ -43,6 +45,8 @@ This is a single-user Neovim config repo. The config is written entirely in **Lu
 ├── CLAUDE.md                  # This file
 ├── GUIDE.md                   # Quick reference guide
 ├── USAGE_DETAILS.md           # Detailed usage / troubleshooting
+├── SETUP.md                   # Fresh machine setup instructions
+├── TESTING.md                 # Regression test suite
 ├── lua/
 │   ├── config/                # Core settings (loaded before plugins)
 │   │   ├── lazy.lua           # lazy.nvim bootstrap + setup
@@ -70,13 +74,16 @@ This is a single-user Neovim config repo. The config is written entirely in **Lu
    returns a table (or list of tables). No central plugin list to maintain — just add
    a file.
 
-3. **Treesitter `master` branch.** The `main` branch was rewritten for Nvim 0.12+ with
-   an incompatible API. For Nvim 0.11, `branch = "master"` is required. When upgrading
-   to Nvim 0.12+, this must be migrated (see `USAGE_DETAILS.md`).
+3. **Treesitter `main` branch.** Uses the `main` branch of nvim-treesitter, which
+   targets Nvim 0.12+. The plugin setup uses `require("nvim-treesitter").setup()` +
+   `install()` + FileType autocmds for highlight/indent. The tree-sitter CLI (installed
+   via npm) is a required dependency.
 
 4. **New LSP API.** Uses `vim.lsp.config()` + `vim.lsp.enable()` (Nvim 0.11+), not the
    deprecated `require('lspconfig').server.setup{}` pattern. Mason-lspconfig's
-   `automatic_enable = true` handles enabling.
+   `automatic_enable = true` handles enabling. LSP status is checked via
+   `:checkhealth vim.lsp` (not the old `:LspInfo`), and servers are restarted with
+   `:lsp restart` (not the old `:LspRestart`).
 
 5. **LuaSnip + friendly-snippets** for completion snippets. Provides VS Code-style
    snippet libraries for many languages out of the box.
@@ -92,7 +99,7 @@ This is a single-user Neovim config repo. The config is written entirely in **Lu
 Create `lua/plugins/<name>.lua` returning a spec table. See `GUIDE.md`.
 
 ### Add a language
-1. Add treesitter parser name to `ensure_installed` in `lua/plugins/treesitter.lua`
+1. Add treesitter parser name to the `install()` call in `lua/plugins/treesitter.lua`
 2. Add LSP server name to `ensure_installed` in `lua/plugins/lsp.lua`
 3. Restart Neovim
 
@@ -114,8 +121,9 @@ Add a `vim.lsp.config("server_name", { ... })` call in `lua/plugins/lsp.lua`.
 - Plugins are installed to `~/.local/share/nvim/lazy/` (not in this repo).
 - Treesitter parsers are compiled to `~/.local/share/nvim/lazy/nvim-treesitter/parser/`.
 - Mason installs LSP servers to `~/.local/share/nvim/mason/`.
-- On a fresh machine: clone this repo to `~/.config/nvim`, open `nvim` — everything
-  auto-installs on first launch.
+- **tree-sitter CLI** is required for compiling parsers. Install via `npm install -g tree-sitter-cli`.
+- On a fresh machine: clone this repo to `~/.config/nvim`, ensure the tree-sitter CLI
+  is installed, open `nvim` — everything auto-installs on first launch.
 
 ---
 

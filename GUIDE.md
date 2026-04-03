@@ -112,13 +112,11 @@ Leader key is **Space**.
 Treesitter handles syntax highlighting. To add a language:
 
 1. Open `~/.config/nvim/lua/plugins/treesitter.lua`
-2. Add the language name to the `ensure_installed` list
-3. Restart Neovim (or run `:TSInstall <language>`)
+2. Add the parser name to the `install()` call
+3. Restart Neovim
 
-With `auto_install = true` (already set), Treesitter will also auto-install
-parsers when you open a file of a recognized type.
-
-Full list of supported languages: run `:TSInstallInfo` in Neovim.
+Full list of available parsers: see the
+[nvim-treesitter wiki](https://github.com/nvim-treesitter/nvim-treesitter/wiki/List-of-parsers).
 
 ---
 
@@ -233,7 +231,8 @@ Edit `~/.config/nvim/lua/config/options.lua`. Examples:
 | `:Lazy update` | Update plugins |
 | `:Lazy health` | Check plugin health |
 | `:Mason` | Open Mason dashboard (LSP servers) |
-| `:TSInstallInfo` | Show treesitter parser status |
+| `:checkhealth vim.lsp` | Show LSP status and active clients |
+| `:lsp restart` | Restart LSP clients |
 | `:checkhealth` | Full Neovim health check |
 
 ---
