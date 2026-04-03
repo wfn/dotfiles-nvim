@@ -28,7 +28,8 @@ opt.signcolumn = "yes"      -- Always show sign column
 opt.cursorline = true       -- Highlight current line
 opt.scrolloff = 8           -- Keep 8 lines above/below cursor
 opt.sidescrolloff = 8
-opt.wrap = false            -- No line wrapping
+opt.wrap = true             -- Wrap long lines
+opt.linebreak = true        -- Break at word boundaries
 
 -- Splits
 opt.splitright = true       -- Vertical splits to the right
