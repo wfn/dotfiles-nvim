@@ -118,19 +118,32 @@ end, 3000)' 2>&1
 
 **Expected**: Both `OK`.
 
-### 7. Telescope Loads
+### 7. Telescope Pickers Open Without Error
+
+Actually opens Telescope pickers (find_files, live_grep, buffers), which creates
+buffers with custom filetypes (TelescopePrompt, TelescopeResults). Verifies that
+treesitter's FileType autocmd doesn't crash on these non-parser filetypes.
 
 ```sh
 nvim --headless -c 'lua vim.defer_fn(function()
-  local ok, builtin = pcall(require, "telescope.builtin")
-  print("telescope.builtin:", ok and "OK" or "FAIL")
-  print("find_files:", type(builtin.find_files) == "function" and "OK" or "FAIL")
-  print("live_grep:", type(builtin.live_grep) == "function" and "OK" or "FAIL")
-  vim.cmd("qa!")
-end, 3000)' 2>&1
+  local builtin = require("telescope.builtin")
+  local results = {}
+  for _, picker in ipairs({"find_files", "live_grep", "buffers"}) do
+    local ok, err = pcall(builtin[picker], {cwd = vim.fn.expand("~/.config/nvim")})
+    results[picker] = ok
+    print(picker .. ": " .. (ok and "OK" or "FAIL: " .. tostring(err)))
+    if ok then pcall(vim.cmd, "close") end
+  end
+  vim.defer_fn(function()
+    local msgs = vim.api.nvim_exec2("messages", {output=true}).output
+    local has_parser_err = msgs:find("Parser could not be created")
+    print("Treesitter parser errors:", has_parser_err and "YES" or "NONE")
+    vim.cmd("qa!")
+  end, 1000)
+end, 2000)' 2>&1
 ```
 
-**Expected**: All `OK`.
+**Expected**: All pickers `OK`, treesitter parser errors `NONE`.
 
 ### 8. Editor Plugins Load
 
@@ -198,8 +211,8 @@ echo "=== 5. Diagnostics ===" && \
 nvim --headless -c 'lua vim.defer_fn(function() print("jump fwd:",pcall(vim.diagnostic.jump,{count=1}));print("jump back:",pcall(vim.diagnostic.jump,{count=-1}));print("open_float:",pcall(vim.diagnostic.open_float));local m=vim.api.nvim_exec2("messages",{output=true}).output;print("deprecations:",m:find("[Dd]eprecated") and "YES" or "NONE");vim.cmd("qa!") end,2000)' 2>&1 && \
 echo "=== 6. Completion ===" && \
 nvim --headless -c 'lua vim.defer_fn(function() print("cmp:",pcall(require,"cmp") and "OK" or "FAIL");print("luasnip:",pcall(require,"luasnip") and "OK" or "FAIL");vim.cmd("qa!") end,3000)' 2>&1 && \
-echo "=== 7. Telescope ===" && \
-nvim --headless -c 'lua vim.defer_fn(function() local ok,b=pcall(require,"telescope.builtin");print("telescope:",ok and "OK" or "FAIL");vim.cmd("qa!") end,3000)' 2>&1 && \
+echo "=== 7. Telescope Pickers ===" && \
+nvim --headless -c 'lua vim.defer_fn(function() local b=require("telescope.builtin");for _,p in ipairs({"find_files","live_grep","buffers"}) do local ok=pcall(b[p],{cwd=vim.fn.expand("~/.config/nvim")});print(p..": "..(ok and "OK" or "FAIL"));if ok then pcall(vim.cmd,"close") end end;vim.defer_fn(function() local m=vim.api.nvim_exec2("messages",{output=true}).output;print("parser errors: "..(m:find("Parser could not be created") and "YES" or "NONE"));vim.cmd("qa!") end,1000) end,2000)' 2>&1 && \
 echo "=== 8. Editor Plugins ===" && \
 nvim --headless -c 'lua vim.defer_fn(function() for _,p in ipairs({"gitsigns","which-key","lualine","ibl","nvim-autopairs","Comment","tokyonight"}) do print(p..": "..(pcall(require,p) and "OK" or "FAIL")) end;vim.cmd("qa!") end,3000)' 2>&1 && \
 echo "=== 9. Keymaps ===" && \

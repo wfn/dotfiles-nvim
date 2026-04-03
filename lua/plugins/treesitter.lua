@@ -37,13 +37,11 @@ return {
 
     -- Enable treesitter highlighting for all filetypes with a parser
     -- (replaces highlight = { enable = true })
+    -- pcall guards against filetypes with no parser (e.g. TelescopePrompt)
     vim.api.nvim_create_autocmd("FileType", {
       group = vim.api.nvim_create_augroup("treesitter-highlight", { clear = true }),
       callback = function(args)
-        local lang = vim.treesitter.language.get_lang(vim.bo[args.buf].filetype)
-        if lang and pcall(vim.treesitter.language.add, lang) then
-          vim.treesitter.start(args.buf)
-        end
+        pcall(vim.treesitter.start, args.buf)
       end,
     })
 
