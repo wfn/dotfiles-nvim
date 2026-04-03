@@ -1,0 +1,13 @@
+# Neovim generated
+plugin/
+spell/
+.netrwhist
+
+# Lazy.nvim state (plugins are installed at runtime, not stored here)
+# lazy-lock.json IS committed — it pins exact plugin versions for reproducibility
+
+# OS
+.DS_Store
+
+# Local overrides (if you create any)
+lua/config/local.lua
