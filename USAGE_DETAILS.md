@@ -374,6 +374,24 @@ Quick refresher on core Vim concepts that are useful with this config.
 - `if` / `af` — inner/around function (with Treesitter text objects, if added)
 - Usage: `ci"` = change inside quotes, `da(` = delete around parens, `vi{` = select inside braces
 
+### File Under Cursor (`gf`)
+Vim/Neovim can open a file whose name is under the cursor:
+- `gf` — open in current window (replaces what you're looking at)
+- `Ctrl+w f` — open in horizontal split
+- `Ctrl+w v` then `gf` — open in vertical split (two keystrokes)
+- `Space gf` — open in vertical split (custom shortcut, one keystroke)
+
+`gf` searches relative to the current file's directory first, then searches
+Neovim's `path` option. If the file isn't found, use `Space ff` (Telescope)
+to search the full project instead.
+
+**Telescope tip**: when a Telescope picker is open (e.g. `Space ff`), you can
+choose how to open the result:
+- `Enter` — current window
+- `Ctrl+v` — vertical split
+- `Ctrl+x` — horizontal split
+- `Ctrl+t` — new tab
+
 ### Splits
 - `:vs` / `:sp` — vertical/horizontal split
 - `Ctrl+h/j/k/l` — navigate between splits (this config)

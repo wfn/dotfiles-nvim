@@ -38,6 +38,9 @@ map("n", "N", "Nzzzv")
 -- Better paste (don't overwrite register)
 map("x", "<leader>p", [["_dP]], { desc = "Paste without overwriting register" })
 
+-- File under cursor
+map("n", "<leader>gf", "<C-w>vgf", { desc = "Open file under cursor in vsplit" })
+
 -- Diagnostic navigation
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })

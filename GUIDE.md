@@ -53,6 +53,12 @@ Leader key is **Space**.
 | `gcc` | Toggle comment (line) |
 | `gc` (visual) | Toggle comment (selection) |
 
+### File Under Cursor
+| Key | Action |
+|-----|--------|
+| `gf` | Open file under cursor (current window) |
+| `Space gf` | Open file under cursor in vertical split |
+
 ### File Navigation (Telescope)
 | Key | Action |
 |-----|--------|
